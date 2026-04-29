@@ -19,7 +19,6 @@ df['Valor'] = (
 df['Valor'] = pd.to_numeric(df['Valor'], errors='coerce')
 
 # --- Tratamento da coluna Data ---
-# Força interpretação no formato brasileiro (dia/mês/ano)
 df['Data'] = pd.to_datetime(df['Data'], format='%d/%m/%Y', errors='coerce')
 
 # Coluna AnoMes em português manualmente
@@ -33,10 +32,12 @@ st.title("📊 Dashboard Financeiro")
 
 # --- Indicadores principais ---
 total_entradas = df[df['Tipo'] == 'Entrada']['Valor'].sum()
-total_saidas = df[df['Tipo'] == 'Saída']['Valor'].sum()
-saldo = total_entradas - total_saidas
-total_receber = df[df['Status'] == 'A Receber']['Valor'].sum()
-total_pagar = df[df['Status'] == 'A Pagar']['Valor'].sum()
+total_saidas   = df[df['Tipo'] == 'Saída']['Valor'].sum()
+saldo          = total_entradas - total_saidas
+
+# Correção: usar "Pendente" em vez de "A Receber/A Pagar"
+total_receber  = df[(df['Tipo'] == 'Entrada') & (df['Status'] == 'Pendente')]['Valor'].sum()
+total_pagar    = df[(df['Tipo'] == 'Saída') & (df['Status'] == 'Pendente')]['Valor'].sum()
 
 # Cards coloridos
 def card(title, value, color):
@@ -51,13 +52,13 @@ def card(title, value, color):
     )
 
 col1, col2, col3 = st.columns(3)
-with col1: card("💰 Total Entradas", total_entradas, "#2ecc71")  # verde
-with col2: card("💸 Total Saídas", total_saidas, "#e74c3c")      # vermelho
-with col3: card("📊 Saldo", saldo, "#3498db")                    # azul
+with col1: card("💰 Total Entradas", total_entradas, "#2ecc71")
+with col2: card("💸 Total Saídas", total_saidas, "#e74c3c")
+with col3: card("📊 Saldo", saldo, "#3498db")
 
 col4, col5 = st.columns(2)
-with col4: card("📥 Total a Receber", total_receber, "#f1c40f")  # amarelo
-with col5: card("📤 Total a Pagar", total_pagar, "#9b59b6")      # roxo
+with col4: card("📥 Total a Receber", total_receber, "#f1c40f")
+with col5: card("📤 Total a Pagar", total_pagar, "#9b59b6")
 
 # --- Gráfico de barras por mês ---
 st.subheader("📊 Comparativo Mensal Entradas vs Saídas")
